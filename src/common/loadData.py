@@ -30,11 +30,11 @@ def load_all_data(file_in, type_class, features):
     l = df_in[label].to_list()
     h = df_in['sentence1'].to_list()
 
-    # Kiểm tra tên cột
-    if 'sentence2' in df_in.columns:
-        p = df_in['sentence2'].to_list()
+    # Sửa tên cột từ 'sentence2' thành 'sentences2'
+    if 'sentences2' in df_in.columns:
+        p = df_in['sentences2'].to_list()
     else:
-        raise KeyError("'sentence2' column is missing in the DataFrame")
+        raise KeyError("'sentences2' column is missing in the DataFrame")
 
     f = []
     if features:
@@ -47,6 +47,7 @@ def load_all_data(file_in, type_class, features):
 
     list_of_tuples = list(zip(h, p, l, f))
     return pd.DataFrame(list_of_tuples, columns=['text_a', 'text_b', 'labels', 'feature'])
+
 
 
 
