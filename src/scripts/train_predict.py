@@ -28,18 +28,19 @@ def main(parser):
             feature = feature_all
 
     # Chỉnh sửa đường dẫn đến tập dữ liệu
-    training_set = training_set.replace("/data/", "/content/apex/Headline-Stance-Detection/")
-    test_set = test_set.replace("/data/", "/content/apex/Headline-Stance-Detection/")
+    training_set = training_set.replace("/data/", "/content/apex/")
+    test_set = test_set.replace("/data/", "/content/apex/")
+
+    # Tải dữ liệu huấn luyện và kiểm tra
+    df_train = load_all_data(training_set, type_class, feature)
+    df_test = load_all_data(test_set, type_class, feature)
 
     if model_dir == "":
-        df_test = load_all_data(test_set, type_class, feature)
-        df_train = load_all_data(training_set, type_class, feature)
-        
-        # In ra thông tin huấn luyện
+        # Bắt đầu huấn luyện mô hình
         print("Bắt đầu huấn luyện mô hình...")
         train_predict_model(df_train, df_test, True, use_cuda, len(feature))
     else:
-        df_test = load_all_data(test_set, type_class, feature)
+        # Dự đoán với mô hình đã lưu
         predict(df_test, use_cuda, model_dir, len(feature))
 
 
@@ -49,7 +50,7 @@ if __name__ == '__main__':
     ## Required parameters
     parser.add_argument("--type_class", choices=['related', 'stance', 'all'],
                         default='related', help="This parameter is used to choose the type of "
-                                                "clasificator (related, stance, all).")
+                                                "classifier (related, stance, all).")
 
     parser.add_argument("--use_cuda",
                         default=False,
@@ -64,16 +65,16 @@ if __name__ == '__main__':
     parser.add_argument("--training_set",
                         default="/data/FNC_summy_textRank_train_spacy_pipeline_polarity_v2.json",
                         type=str,
-                        help="This parameter is the relatis_type_contradictionive dir of training set.")
+                        help="This parameter is the relative dir of the training set.")
 
     parser.add_argument("--test_set",
                         default="/data/FNC_summy_textRank_test_spacy_pipeline_polarity_v2.json",
                         type=str,
-                        help="This parameter is the relative dir of test set.")
+                        help="This parameter is the relative dir of the test set.")
 
     parser.add_argument("--model_dir",
                         default="",
                         type=str,
-                        help="This parameter is the relative dir of model for predict.")
+                        help="This parameter is the relative dir of the model for prediction.")
 
     main(parser)

@@ -1,7 +1,9 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\src",
+    "\\src\\scripts"
   ],
-  "SelectedNode": "\\C:\\Headline-Stance-Detection",
+  "SelectedNode": "\\src\\scripts\\train_predict.py",
   "PreviewInSolutionExplorer": false
 }
