@@ -17,6 +17,7 @@ def main(parser):
     training_set = args.training_set
     test_set = args.test_set
     model_dir = args.model_dir
+    batch_size = args.batch_size  # Lấy giá trị batch_size từ đối số
     feature = []
     
     if not not_use_feature:
@@ -38,7 +39,7 @@ def main(parser):
     if model_dir == "":
         # Bắt đầu huấn luyện mô hình
         print("Bắt đầu huấn luyện mô hình...")
-        train_predict_model(df_train, df_test, True, use_cuda, len(feature))
+        train_predict_model(df_train, df_test, True, use_cuda, len(feature), batch_size)  # Truyền batch_size vào hàm
     else:
         # Dự đoán với mô hình đã lưu
         predict(df_test, use_cuda, model_dir, len(feature))
@@ -76,5 +77,10 @@ if __name__ == '__main__':
                         default="",
                         type=str,
                         help="This parameter is the relative dir of the model for prediction.")
+    
+    parser.add_argument("--batch_size",
+                        default=4,  # Giá trị mặc định
+                        type=int,
+                        help="This parameter is the batch size for training and evaluation.")
 
     main(parser)

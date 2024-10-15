@@ -79,19 +79,7 @@ class OutClassificationModel():
         self, model_type, model_name, num_labels=None, weight=None, args=None, use_cuda=True, cuda_device=-1, **kwargs,
     ):
 
-        """
-        Initializes a ClassificationModel model.
-
-        Args:
-            model_type: The type of model (bert, xlnet, xlm, roberta, distilbert)
-            model_name: The exact architecture and trained weights to use. This may be a Hugging Face Transformers compatible pre-trained model, a community model, or the path to a directory containing model files.
-            num_labels (optional): The number of labels or classes in the dataset.
-            weight (optional): A list of length num_labels containing the weights to assign to each label for loss calculation.
-            args (optional): Default args will be used if this parameter is not provided. If provided, it should be a dict containing the args that should be changed in the default args.
-            use_cuda (optional): Use GPU if available. Setting to False will force model to use CPU only.
-            cuda_device (optional): Specific GPU that should be used. Will use the first available GPU by default.
-            **kwargs (optional): For providing proxies, force_download, resume_download, cache_dir and other options specific to the 'from_pretrained' implementation where this will be supplied.
-        """  # noqa: ignore flake8"
+    
 
         MODEL_CLASSES = {
             "bert": (BertConfig, BertForSequenceClassification, BertTokenizer),
@@ -152,14 +140,7 @@ class OutClassificationModel():
         else:
             self.device = "cpu"
 
-        # {if 'roberta' in model_name:
-        #             if self.weight:
-        #                 self.model = model_class.from_pretrained(
-        #                     model_name, config=self.config, weight=torch.Tensor(self.weight).to(self.device), **kwargs,
-        #                 )
-        #             else:
-        #                 self.model = model_class.from_pretrained(model_name, config=self.config, **kwargs)
-        #         else:}
+        
         if self.weight:
             self.model = model_class.from_pretrained(
                 model_name, config=self.config, weight=torch.Tensor(self.weight).to(self.device), **kwargs,
@@ -202,22 +183,7 @@ class OutClassificationModel():
         verbose=True,
         **kwargs,
     ):
-        """
-        Trains the model using 'train_df'
 
-        Args:
-            train_df: Pandas Dataframe containing at least two columns. If the Dataframe has a header, it should contain a 'text' and a 'labels' column. If no header is present,
-            the Dataframe should contain at least two columns, with the first column containing the text, and the second column containing the label. The model will be trained on this Dataframe.
-            output_dir: The directory where model files will be saved. If not given, self.args['output_dir'] will be used.
-            show_running_loss (optional): Set to False to prevent running loss from being printed to console. Defaults to True.
-            args (optional): Optional changes to the args dict of the model. Any changes made will persist for the model.
-            eval_df (optional): A DataFrame against which evaluation will be performed when evaluate_during_training is enabled. Is required if evaluate_during_training is enabled.
-            **kwargs: Additional metrics that should be used. Pass in the metrics as keyword arguments (name of metric: function to use). E.g. f1=sklearn.metrics.f1_score.
-                        A metric function should take in two parameters. The first parameter will be the true labels, and the second parameter will be the predictions.
-
-        Returns:
-            None
-        """  # noqa: ignore flake8"
 
         if args:
             self.args.update(args)
@@ -412,14 +378,10 @@ class OutClassificationModel():
                 if args["fp16"]:
                     with amp.scale_loss(loss, optimizer) as scaled_loss:
                         scaled_loss.backward()
-                    # torch.nn.utils.clip_grad_norm_(
-                    #     amp.master_params(optimizer), args["max_grad_norm"]
-                    # )
+                   
                 else:
                     loss.backward()
-                    # torch.nn.utils.clip_grad_norm_(
-                    #     model.parameters(), args["max_grad_norm"]
-                    # )
+                   
 
                 tr_loss += loss.item()
                 if (step + 1) % args["gradient_accumulation_steps"] == 0:
@@ -613,23 +575,7 @@ class OutClassificationModel():
         return global_step, tr_loss / global_step
 
     def eval_model(self, eval_df, multi_label=False, output_dir=None, verbose=True, silent=False, **kwargs):
-        """
-        Evaluates the model on eval_df. Saves results to output_dir.
-
-        Args:
-            eval_df: Pandas Dataframe containing at least two columns. If the Dataframe has a header, it should contain a 'text' and a 'labels' column. If no header is present,
-            the Dataframe should contain at least two columns, with the first column containing the text, and the second column containing the label. The model will be evaluated on this Dataframe.
-            output_dir: The directory where model files will be saved. If not given, self.args['output_dir'] will be used.
-            verbose: If verbose, results will be printed to the console on completion of evaluation.
-            silent: If silent, tqdm progress bars will be hidden.
-            **kwargs: Additional metrics that should be used. Pass in the metrics as keyword arguments (name of metric: function to use). E.g. f1=sklearn.metrics.f1_score.
-                        A metric function should take in two parameters. The first parameter will be the true labels, and the second parameter will be the predictions.
-
-        Returns:
-            result: Dictionary containing evaluation results.
-            model_outputs: List of model outputs for each row in eval_df
-            wrong_preds: List of InputExample objects corresponding to each incorrect prediction by the model
-        """  # noqa: ignore flake8"
+        
 
         if not output_dir:
             output_dir = self.args["output_dir"]
@@ -648,11 +594,7 @@ class OutClassificationModel():
 
 
     def evaluate(self, eval_df, output_dir, multi_label=False, prefix="", verbose=True, silent=False, **kwargs):
-        """
-        Evaluates the model on eval_df.
-
-        Utility function to be used by the eval_model() method. Not intended to be used directly.
-        """
+       
 
         device = self.device
         model = self.model
@@ -769,12 +711,7 @@ class OutClassificationModel():
     def load_and_cache_examples(
         self, examples, evaluate=False, no_cache=False, multi_label=False, verbose=True, silent=False
     ):
-        """
-        Converts a list of InputExample objects to a TensorDataset containing InputFeatures. Caches the InputFeatures.
-
-        Utility function for train() and eval() methods. Not intended to be used directly.
-        """
-
+        
         process_count = self.args["process_count"]
 
         tokenizer = self.tokenizer
@@ -863,20 +800,7 @@ class OutClassificationModel():
             return dataset
 
     def compute_metrics(self, preds, labels, eval_examples, multi_label=False, **kwargs):
-        """
-        Computes the evaluation metrics for the model predictions.
-
-        Args:
-            preds: Model predictions
-            labels: Ground truth labels
-            eval_examples: List of examples on which evaluation was performed
-            **kwargs: Additional metrics that should be used. Pass in the metrics as keyword arguments (name of metric: function to use). E.g. f1=sklearn.metrics.f1_score.
-                        A metric function should take in two parameters. The first parameter will be the true labels, and the second parameter will be the predictions.
-
-        Returns:
-            result: Dictionary containing evaluation results. (Matthews correlation coefficient, tp, tn, fp, fn)
-            wrong: List of InputExample objects corresponding to each incorrect prediction by the model
-        """  # noqa: ignore flake8"
+    
 
         assert len(preds) == len(labels)
 
@@ -906,16 +830,7 @@ class OutClassificationModel():
             return {**{"mcc": mcc}, **extra_metrics}, wrong
 
     def predict(self, to_predict, multi_label=False):
-        """
-        Performs predictions on a list of text.
-
-        Args:
-            to_predict: A python list of text (str) to be sent to the model for prediction.
-
-        Returns:
-            preds: A python list of the predictions (0 or 1) for each text.
-            model_outputs: A python list of the raw model outputs for each text.
-        """
+        
 
         device = self.device
         model = self.model
