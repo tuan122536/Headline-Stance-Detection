@@ -29,8 +29,8 @@ def main(parser):
             feature = feature_all
 
     # Chỉnh sửa đường dẫn đến tập dữ liệu
-    training_set = training_set.replace("/data/", "/content/apex/")
-    test_set = test_set.replace("/data/", "/content/apex/")
+    training_set = training_set.replace("/data/", "/content/apex/Headline-Stance-Detection/")
+    test_set = test_set.replace("/data/", "/content/apex/Headline-Stance-Detection/")
 
     # Tải dữ liệu huấn luyện và kiểm tra
     df_train = load_all_data(training_set, type_class, feature)
