@@ -207,6 +207,11 @@ class OutClassificationModel():
             )
 
         self._move_model_to_device()
+        
+        best_accuracy = 0
+        patience_counter = 0
+        patience = self.args.get("early_stopping_patience", 3)  # Số epoch mà không có cải thiện để dừng
+        threshold = self.args.get("early_stopping_threshold", 0.01)  # Ngưỡng cải thiện
 
         if "text" in train_df.columns and "labels" in train_df.columns:
             train_examples = [
