@@ -74,7 +74,18 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-
+MODEL_CLASSES = {
+    "bert": (BertConfig, BertForSequenceClassification, BertTokenizer),
+    "xlnet": (XLNetConfig, XLNetForSequenceClassification, XLNetTokenizer),
+    "xlm": (XLMConfig, XLMForSequenceClassification, XLMTokenizer),
+    "roberta": (RobertaConfig, OutRobertaForSequenceClassification, RobertaTokenizer),
+    "distilbert": (DistilBertConfig, DistilBertForSequenceClassification, DistilBertTokenizer),
+    "albert": (AlbertConfig, AlbertForSequenceClassification, AlbertTokenizer),
+    "camembert": (CamembertConfig, CamembertForSequenceClassification, CamembertTokenizer),
+    "xlmroberta": (XLMRobertaConfig, XLMRobertaForSequenceClassification, XLMRobertaTokenizer),
+    "flaubert": (FlaubertConfig, FlaubertForSequenceClassification, FlaubertTokenizer),
+    "electra": (ElectraConfig, ElectraForSequenceClassification, ElectraTokenizer)
+}
 class OutClassificationModel:
     def __init__(self, model_type, model_name, num_labels=None, weight=None, args=None, use_cuda=True, cuda_device=-1, **kwargs):
         print(f"Model type: {model_type}")  # In ra loại mô hình
@@ -91,18 +102,6 @@ class OutClassificationModel:
         self.model = model_class.from_pretrained(model_name, config=self.config, **kwargs)
         self.tokenizer = tokenizer_class.from_pretrained(model_name)
 
-        MODEL_CLASSES = {
-            "bert": (BertConfig, BertForSequenceClassification, BertTokenizer),
-            "xlnet": (XLNetConfig, XLNetForSequenceClassification, XLNetTokenizer),
-            "xlm": (XLMConfig, XLMForSequenceClassification, XLMTokenizer),
-            "roberta": (RobertaConfig, OutRobertaForSequenceClassification, RobertaTokenizer),
-            "distilbert": (DistilBertConfig, DistilBertForSequenceClassification, DistilBertTokenizer),
-            "albert": (AlbertConfig, AlbertForSequenceClassification, AlbertTokenizer),
-            "camembert": (CamembertConfig, CamembertForSequenceClassification, CamembertTokenizer),
-            "xlmroberta": (XLMRobertaConfig, XLMRobertaForSequenceClassification, XLMRobertaTokenizer),
-            "flaubert": (FlaubertConfig, FlaubertForSequenceClassification, FlaubertTokenizer),
-            "electra": (ElectraConfig, ElectraForSequenceClassification, ElectraTokenizer)
-        }
 
         if args and "manual_seed" in args:
             random.seed(args["manual_seed"])
