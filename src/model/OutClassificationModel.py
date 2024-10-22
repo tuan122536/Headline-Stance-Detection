@@ -143,7 +143,8 @@ class OutClassificationModel:
                 model_name, config=self.config, weight=torch.Tensor(self.weight).to(self.device), **kwargs,
             )
         else:
-            self.model = model_class.from_pretrained(model_name, config=self.config, value_head=args['value_head'], **kwargs)
+            self.model = model_class.from_pretrained(model_name, config=self.config, **kwargs)  # Loại bỏ value_head
+
 
 
         self.results = {}
