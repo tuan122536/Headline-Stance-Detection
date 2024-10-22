@@ -5,66 +5,63 @@ import numpy as np
 from sklearn.metrics import accuracy_score
 from model.OutClassificationModel import OutClassificationModel
 
-def train_predict_model(df_train, df_test, is_predict, use_cuda, batch_size):  
+def train_predict_model(df_train, df_test, is_predict, use_cuda, value_head, batch_size, device):
     labels_test = pd.Series(df_test['labels']).to_numpy()
     labels = list(df_train['labels'].unique())
     labels.sort()
 
-    # Thử mô hình Bert
-    model_type = "bert"  
-    model = OutClassificationModel(model_type, 'bert-base-uncased', num_labels=len(labels),
-                                   use_cuda=use_cuda, args={
-                                   'learning_rate': 5e-6,
-                                   'num_train_epochs': 10,
-                                   'reprocess_input_data': True,
-                                   'overwrite_output_dir': True,
-                                   'process_count': 10,
-                                   'train_batch_size': batch_size,
-                                   'eval_batch_size': batch_size,
-                                   'max_seq_length': 512,
-                                   'fp16': True,
-                                   'fp16_opt_level': "O1",
-                                   'early_stopping': True,
-                                   'early_stopping_patience': 3,
-                                   'early_stopping_threshold': 0.01})
+    # mô hình với các tham số tối ưu hóa
+    model = OutClassificationModel('roberta', 'roberta-large', num_labels=len(labels),
+                                use_cuda=use_cuda, args={
+                                'learning_rate': 5e-6,
+                                'num_train_epochs': 5,  # Tăng số epoch nếu cần
+                                'reprocess_input_data': True,
+                                'overwrite_output_dir': True,
+                                'process_count': 10,
+                                'train_batch_size': batch_size,
+                                'eval_batch_size': batch_size,
+                                'max_seq_length': 512,
+                                'fp16': True,
+                                'fp16_opt_level': "O1",
+                                'value_head': value_head,
+                                'early_stopping': True,  # Bật Early Stopping
+                                'early_stopping_patience': 3,  # Thời gian dừng
+                                'early_stopping_threshold': 0.01})  # Ngưỡng cải thiện
 
     # Huấn luyện mô hình
     model.train_model(df_train)
 
     results = ''
     if is_predict:
+        # Chuẩn bị dữ liệu để dự đoán
         text_a = df_test['text_a']
         text_b = df_test['text_b']
-        feature = df_test['feature']  # Giả định bạn có feature trong df_test
+        feature = df_test['feature']
         df_result = pd.concat([text_a, text_b, feature], axis=1)
         value_in = df_result.values.tolist()
-
-        # Truyền externalFeature vào phương thức predict
-        _, model_outputs_test = model.predict(value_in, externalFeature=feature.tolist())  # Giả định bạn có thể truyền externalFeature
-
+        _, model_outputs_test = model.predict(value_in)
     else:
+        # Đánh giá mô hình
         result, model_outputs_test, wrong_predictions = model.eval_model(df_test, acc=accuracy_score)
         results = result['acc']
-
+    
+    # Dự đoán nhãn
     y_predict = np.argmax(model_outputs_test, axis=1)
-    print(scorePredict(y_predict, labels_test, labels))
+    print(scorePredict(y_predict, labels_test, labels))  # In ra điểm số
     return results
 
-def predict(df_test, use_cuda, model_dir):
-    model = OutClassificationModel(model_type='bert', model_name=os.getcwd() + model_dir, use_cuda=use_cuda)
+
+def predict(df_test, use_cuda, model_dir, value_head):
+    # Khởi tạo mô hình từ thư mục đã lưu
+    model = OutClassificationModel(model_type='roberta', model_name=os.getcwd() + model_dir, use_cuda=use_cuda, args={'value_head': value_head})
     labels_test = pd.Series(df_test['labels']).to_numpy()
     labels = list(df_test['labels'].unique())
     labels.sort()
-
     text_a = df_test['text_a']
     text_b = df_test['text_b']
-    feature = df_test['feature']  # Giả định bạn có feature trong df_test
+    feature = df_test['feature']
     df_result = pd.concat([text_a, text_b, feature], axis=1)
     value_in = df_result.values.tolist()
-
-    # Truyền externalFeature vào phương thức predict
-    # Chắc chắn rằng model.predict có khả năng xử lý externalFeature
-    _, model_outputs_test = model.predict(value_in, externalFeature=feature.tolist())  # Truyền externalFeature vào đây
-
+    _, model_outputs_test = model.predict(value_in)
     y_predict = np.argmax(model_outputs_test, axis=1)
-    print(scorePredict(y_predict, labels_test, labels))
+    print(scorePredict(y_predict, labels_test, labels))  # In ra điểm số
