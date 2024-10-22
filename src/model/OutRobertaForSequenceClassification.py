@@ -12,11 +12,11 @@ class OutRobertaForSequenceClassification(BertPreTrainedModel):
     pretrained_model_archive_map = None  # Thay bằng giá trị thích hợp nếu cần
     base_model_prefix = "roberta"
 
-    def __init__(self, config, weight=None, value_head=None):
+    def __init__(self, config, weight=None):
         super(OutRobertaForSequenceClassification, self).__init__(config)
         self.num_labels = config.num_labels
         self.roberta = RobertaModel(config)
-        self.classifier = OutRobertaClassificationHead(config, value_head)
+        self.classifier = OutRobertaClassificationHead(config)  # Không truyền value_head
         self.weight = weight
 
     def forward(self, input_ids=None, attention_mask=None, token_type_ids=None,
