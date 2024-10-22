@@ -42,10 +42,10 @@ def main(parser):
     if model_dir == "":
         # Bắt đầu huấn luyện mô hình
         print("Bắt đầu huấn luyện mô hình...")
-        train_predict_model(df_train, df_test, True, use_cuda, len(feature), batch_size, device)  # Thêm device
+        train_predict_model(df_train, df_test, True, use_cuda, len(feature), batch_size)  # Thêm device
     else:
         # Dự đoán với mô hình đã lưu
-        predict(df_test, use_cuda, model_dir, len(feature), device)  # Thêm device
+        predict(df_test, use_cuda, model_dir, len(feature))  # Thêm device
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
