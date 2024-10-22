@@ -80,6 +80,7 @@ class OutClassificationModel:
         self, model_type, model_name, num_labels=None, weight=None, args=None, use_cuda=True, cuda_device=-1, **kwargs,
     ):
         model_class_info = MODEL_CLASSES.get(model_type)
+        
         if model_class_info is None:
             raise ValueError(f"Model type '{model_type}' is not supported.")
         
@@ -88,7 +89,7 @@ class OutClassificationModel:
         
         # Khởi tạo model
         self.model = model_class.from_pretrained(model_name, config=self.config, **kwargs)
-        
+
         MODEL_CLASSES = {
             "bert": (BertConfig, BertForSequenceClassification, BertTokenizer),
             "xlnet": (XLNetConfig, XLNetForSequenceClassification, XLNetTokenizer),
