@@ -75,27 +75,8 @@ logger = logging.getLogger(__name__)
 
 
 class OutClassificationModel:
-    def __init__(
-        self, model_type, model_name, num_labels=None, weight=None, args=None, use_cuda=True, cuda_device=-1, **kwargs
-    ):
-        self.model_type = model_type
-        self.model_name = model_name
-        self.num_labels = num_labels
-        self.use_cuda = use_cuda
-        self.cuda_device = cuda_device
-
-        # Kiểm tra xem args có phải là dict hay không
-        if args is None:
-            args = {}
-
-        # Lọc bỏ 'value_head' nếu có
-        if 'value_head' in args:
-            del args['value_head']
-
-        # Khởi tạo mô hình (giả sử bạn đang sử dụng Transformers)
-        self.model = SomeModelClass.from_pretrained(model_name, num_labels=num_labels, **args)
-
-    
+   def __init__(self, model_type, model_name, num_labels=None, weight=None, args=None, use_cuda=True, cuda_device=-1, **kwargs):
+        self.model = model_class.from_pretrained(model_name, config=self.config, **kwargs)
 
         MODEL_CLASSES = {
             "bert": (BertConfig, BertForSequenceClassification, BertTokenizer),
