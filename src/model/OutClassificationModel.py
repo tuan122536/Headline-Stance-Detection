@@ -21,7 +21,6 @@ from tqdm.auto import tqdm, trange
 from model.util import InputExample
 import pandas as pd
 import torch
-import torch.nn as nn
 from model.outClasification_utils import convert_examples_to_features, InputExample
 from simpletransformers.classification.transformer_models.albert_model import AlbertForSequenceClassification
 from simpletransformers.classification.transformer_models.bert_model import BertForSequenceClassification
@@ -74,34 +73,26 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-MODEL_CLASSES = {
-    "bert": (BertConfig, BertForSequenceClassification, BertTokenizer),
-    "xlnet": (XLNetConfig, XLNetForSequenceClassification, XLNetTokenizer),
-    "xlm": (XLMConfig, XLMForSequenceClassification, XLMTokenizer),
-    "roberta": (RobertaConfig, OutRobertaForSequenceClassification, RobertaTokenizer),
-    "distilbert": (DistilBertConfig, DistilBertForSequenceClassification, DistilBertTokenizer),
-    "albert": (AlbertConfig, AlbertForSequenceClassification, AlbertTokenizer),
-    "camembert": (CamembertConfig, CamembertForSequenceClassification, CamembertTokenizer),
-    "xlmroberta": (XLMRobertaConfig, XLMRobertaForSequenceClassification, XLMRobertaTokenizer),
-    "flaubert": (FlaubertConfig, FlaubertForSequenceClassification, FlaubertTokenizer),
-    "electra": (ElectraConfig, ElectraForSequenceClassification, ElectraTokenizer)
-}
-class OutClassificationModel:
-    def __init__(self, model_type, model_name, num_labels=None, weight=None, args=None, use_cuda=True, cuda_device=-1, **kwargs):
-        print(f"Model type: {model_type}")  # In ra loại mô hình
-        model_class_info = MODEL_CLASSES.get(model_type)
-        print(f"Model class info: {model_class_info}")  # In ra thông tin lớp mô hình
-        
-        if model_class_info is None:
-            raise ValueError(f"Model type '{model_type}' is not supported.")
-        
-        config_class, model_class, tokenizer_class = model_class_info
-        
-        # Khởi tạo model
-        self.config = config_class.from_pretrained(model_name)  # Khởi tạo cấu hình
-        self.model = model_class.from_pretrained(model_name, config=self.config, **kwargs)
-        self.tokenizer = tokenizer_class.from_pretrained(model_name)
 
+class OutClassificationModel():
+    def __init__(
+        self, model_type, model_name, num_labels=None, weight=None, args=None, use_cuda=True, cuda_device=-1, **kwargs,
+    ):
+
+    
+
+        MODEL_CLASSES = {
+            "bert": (BertConfig, BertForSequenceClassification, BertTokenizer),
+            "xlnet": (XLNetConfig, XLNetForSequenceClassification, XLNetTokenizer),
+            "xlm": (XLMConfig, XLMForSequenceClassification, XLMTokenizer),
+            "roberta": (RobertaConfig, OutRobertaForSequenceClassification, RobertaTokenizer),
+            "distilbert": (DistilBertConfig, DistilBertForSequenceClassification, DistilBertTokenizer),
+            "albert": (AlbertConfig, AlbertForSequenceClassification, AlbertTokenizer),
+            "camembert": (CamembertConfig, CamembertForSequenceClassification, CamembertTokenizer),
+            "xlmroberta": (XLMRobertaConfig, XLMRobertaForSequenceClassification, XLMRobertaTokenizer),
+            "flaubert": (FlaubertConfig, FlaubertForSequenceClassification, FlaubertTokenizer),
+            "electra": (ElectraConfig, ElectraForSequenceClassification, ElectraTokenizer)
+        }
 
         if args and "manual_seed" in args:
             random.seed(args["manual_seed"])
@@ -155,8 +146,7 @@ class OutClassificationModel:
                 model_name, config=self.config, weight=torch.Tensor(self.weight).to(self.device), **kwargs,
             )
         else:
-            self.model = model_class.from_pretrained(model_name, config=self.config, **kwargs)  # Loại bỏ value_head
-
+            self.model = model_class.from_pretrained(model_name, config=self.config, value_head=args['value_head'], **kwargs)
 
 
         self.results = {}
@@ -193,7 +183,8 @@ class OutClassificationModel:
         verbose=True,
         **kwargs,
     ):
-          
+
+
         if args:
             self.args.update(args)
 
@@ -216,7 +207,7 @@ class OutClassificationModel:
             )
 
         self._move_model_to_device()
-        
+        #test
         best_accuracy = 0
         patience_counter = 0
         patience = self.args.get("early_stopping_patience", 3)  # Số epoch mà không có cải thiện để dừng
@@ -275,7 +266,6 @@ class OutClassificationModel:
         verbose=True,
         **kwargs,
     ):
-        
         """
         Trains the model on train_dataset.
 
@@ -850,9 +840,12 @@ class OutClassificationModel:
         device = self.device
         model = self.model
         args = self.args
-    
+
         self._move_model_to_device()
-    
+
+        # for i, text in enumerate(to_predict):
+        #     value1, value2, value3 =text[0], text[1], text[2]
+
         if multi_label:
             eval_examples = [
                 InputExample(i, text, None, [0 for i in range(self.num_labels)]) for i, text in enumerate(to_predict)
@@ -862,88 +855,39 @@ class OutClassificationModel:
                 eval_examples = [InputExample(i, text[0], text[1], 0, text[2]) for i, text in enumerate(to_predict)]
             else:
                 eval_examples = [InputExample(i, text, None, 0) for i, text in enumerate(to_predict)]
-        
         if args["sliding_window"]:
             eval_dataset, window_counts = self.load_and_cache_examples(eval_examples, evaluate=True, no_cache=True)
         else:
             eval_dataset = self.load_and_cache_examples(
                 eval_examples, evaluate=True, multi_label=multi_label, no_cache=True
             )
-    
+
         eval_sampler = SequentialSampler(eval_dataset)
         eval_dataloader = DataLoader(eval_dataset, sampler=eval_sampler, batch_size=args["eval_batch_size"])
-    
+
         eval_loss = 0.0
         nb_eval_steps = 0
         preds = None
         out_label_ids = None
-    
-        for batch in tqdm(eval_dataloader, disable=args["silent"]):
-            model.eval()
-            batch = tuple(t.to(device) for t in batch)
-    
-            with torch.no_grad():
-                inputs = self._get_inputs_dict(batch)
-    
-                # Xóa externalFeature khi gọi model
-                outputs = model(**inputs)  # Đảm bảo không có externalFeature ở đây
-    
-                tmp_eval_loss, logits = outputs[:2]
-    
-                if multi_label:
-                    logits = logits.sigmoid()
-    
-                eval_loss += tmp_eval_loss.mean().item()
-    
-            nb_eval_steps += 1
-    
-            if preds is None:
-                preds = logits.detach().cpu().numpy()
-                out_label_ids = inputs["labels"].detach().cpu().numpy()
-            else:
-                preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
-                out_label_ids = np.append(out_label_ids, inputs["labels"].detach().cpu().numpy(), axis=0)
-    
-        eval_loss = eval_loss / nb_eval_steps
-    
-        if not multi_label and args["regression"] is True:
-            preds = np.squeeze(preds)
-            model_outputs = preds
-        else:
-            model_outputs = preds
-            if multi_label:
-                if isinstance(args["threshold"], list):
-                    threshold_values = args["threshold"]
-                    preds = [
-                        [self._threshold(pred, threshold_values[i]) for i, pred in enumerate(example)]
-                        for example in preds
-                    ]
-                else:
-                    preds = [[self._threshold(pred, args["threshold"]) for pred in example] for example in preds]
-            else:
-                preds = np.argmax(preds, axis=1)
-    
-        return preds, model_outputs
 
         if self.config.output_hidden_states:
             for batch in tqdm(eval_dataloader, disable=args["silent"]):
                 model.eval()
                 batch = tuple(t.to(device) for t in batch)
-        
+
                 with torch.no_grad():
                     inputs = self._get_inputs_dict(batch)
-                    # Xóa externalFeature khi gọi model
-                    outputs = model(**inputs)
+                    outputs = model(**inputs, externalFeature=batch[4])
                     tmp_eval_loss, logits = outputs[:2]
                     embedding_outputs, layer_hidden_states = outputs[2][0], outputs[2][1:]
-        
+
                     if multi_label:
                         logits = logits.sigmoid()
-        
+
                     eval_loss += tmp_eval_loss.mean().item()
-        
+
                 nb_eval_steps += 1
-        
+
                 if preds is None:
                     preds = logits.detach().cpu().numpy()
                     out_label_ids = inputs["labels"].detach().cpu().numpy()
@@ -960,26 +904,27 @@ class OutClassificationModel:
             for batch in tqdm(eval_dataloader, disable=args["silent"]):
                 model.eval()
                 batch = tuple(t.to(device) for t in batch)
-        
+
                 with torch.no_grad():
                     inputs = self._get_inputs_dict(batch)
-                    # Xóa externalFeature khi gọi model
-                    outputs = model(**inputs)
+                    outputs = model(**inputs, externalFeature=batch[4])
                     tmp_eval_loss, logits = outputs[:2]
-        
+
                     if multi_label:
                         logits = logits.sigmoid()
-        
+
                     eval_loss += tmp_eval_loss.mean().item()
-        
+
                 nb_eval_steps += 1
-        
+
                 if preds is None:
                     preds = logits.detach().cpu().numpy()
                     out_label_ids = inputs["labels"].detach().cpu().numpy()
                 else:
                     preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
                     out_label_ids = np.append(out_label_ids, inputs["labels"].detach().cpu().numpy(), axis=0)
+
+        eval_loss = eval_loss / nb_eval_steps
 
         if args["sliding_window"]:
             count = 0
