@@ -1,12 +1,58 @@
-﻿import argparse
+import argparse
 from common.loadData import load_all_data
-from model.roberta_model import train_predict_model, predict
+from model.roberta_model import OutRobertaForSequenceClassification, predict
+import torch
+from torch.utils.data import DataLoader, TensorDataset
+from sklearn.preprocessing import LabelEncoder
+import torch.nn as nn
 
 feature_stance = ['polarityClaim_nltk_neg', 'polarityClaim_nltk_pos', 'polarityBody_nltk_neg', 'polarityBody_nltk_pos']
 feature_related = ['cosine_similarity', 'max_score_in_position', 'overlap', 'soft_cosine_similarity', 'bert_cs']
 feature_all = ['cosine_similarity', 'max_score_in_position', 'overlap', 'soft_cosine_similarity', 'bert_cs',
                'polarityClaim_nltk_neg', 'polarityClaim_nltk_pos', 'polarityBody_nltk_neg', 'polarityBody_nltk_pos']
 
+def train_predict_model(df_train, df_test, use_cuda, num_features, batch_size):
+    # Bước 1: Chuẩn bị dữ liệu
+    label_encoder = LabelEncoder()
+    df_train['label'] = label_encoder.fit_transform(df_train['label'])
+
+    # Tạo TensorDataset từ DataFrame
+    train_inputs = torch.tensor(df_train[['input_ids', 'attention_mask']].values.tolist())
+    train_labels = torch.tensor(df_train['label'].values)
+    train_dataset = TensorDataset(train_inputs, train_labels)
+
+    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+
+    # Bước 2: Khởi tạo mô hình
+    model = OutRobertaForSequenceClassification(config)  # Đảm bảo bạn đang gọi mô hình tùy chỉnh
+
+    if use_cuda:
+        model.cuda()
+
+    optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5)
+
+    # Bước 3: Huấn luyện mô hình
+    model.train()  # Chuyển mô hình sang chế độ huấn luyện
+    for epoch in range(num_epochs):  # num_epochs cần được xác định
+        for batch in train_dataloader:
+            input_ids, labels = batch
+            attention_mask = input_ids.ne(0).type(input_ids.dtype)  # Tạo attention_mask từ input_ids
+
+            # Nếu có externalFeature
+            externalFeature = None  # Bạn cần xác định cách lấy externalFeature từ df_train
+
+            # Gọi mô hình
+            outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=labels, externalFeature=externalFeature)
+
+            # Tính toán mất mát và tối ưu hóa
+            loss = outputs[0]  # Lấy mất mát từ outputs
+            loss.backward()  # Tính gradient
+            optimizer.step()  # Cập nhật trọng số
+            optimizer.zero_grad()  # Đặt lại gradient về 0
+
+    # Bước 4: Dự đoán
+    # Dự đoán trên df_test nếu cần
+    predict(df_test, use_cuda, model_dir, num_features)
 
 def main(parser):
     args = parser.parse_args()
@@ -43,7 +89,6 @@ def main(parser):
     else:
         # Dự đoán với mô hình đã lưu
         predict(df_test, use_cuda, model_dir, len(feature))
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
