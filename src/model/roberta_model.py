@@ -5,13 +5,13 @@ import numpy as np
 from sklearn.metrics import accuracy_score
 from model.OutClassificationModel import OutClassificationModel
 
-def train_predict_model(df_train, df_test, is_predict, use_cuda, batch_size):  # Loại bỏ value_head
+def train_predict_model(df_train, df_test, is_predict, use_cuda, batch_size):  
     labels_test = pd.Series(df_test['labels']).to_numpy()
     labels = list(df_train['labels'].unique())
     labels.sort()
 
     # Thử mô hình Bert
-    model_type = "bert"  # Hoặc kiểu mô hình mà bạn muốn sử dụng
+    model_type = "bert"  
     model = OutClassificationModel(model_type, 'bert-base-uncased', num_labels=len(labels),
                                    use_cuda=use_cuda, args={
                                    'learning_rate': 5e-6,
@@ -27,25 +27,28 @@ def train_predict_model(df_train, df_test, is_predict, use_cuda, batch_size):  #
                                    'early_stopping': True,
                                    'early_stopping_patience': 3,
                                    'early_stopping_threshold': 0.01})
-    
+
+    # Huấn luyện mô hình
     model.train_model(df_train)
 
     results = ''
     if is_predict:
         text_a = df_test['text_a']
         text_b = df_test['text_b']
-        feature = df_test['feature']
+        feature = df_test['feature']  # Giả định bạn có feature trong df_test
         df_result = pd.concat([text_a, text_b, feature], axis=1)
         value_in = df_result.values.tolist()
-        _, model_outputs_test = model.predict(value_in)
+
+        # Truyền externalFeature vào phương thức predict
+        _, model_outputs_test = model.predict(value_in, externalFeature=feature.tolist())  # Giả định bạn có thể truyền externalFeature
+
     else:
         result, model_outputs_test, wrong_predictions = model.eval_model(df_test, acc=accuracy_score)
         results = result['acc']
-    
+
     y_predict = np.argmax(model_outputs_test, axis=1)
     print(scorePredict(y_predict, labels_test, labels))
     return results
-
 
 def predict(df_test, use_cuda, model_dir):
     model = OutClassificationModel(model_type='bert', model_name=os.getcwd() + model_dir, use_cuda=use_cuda)
@@ -54,9 +57,13 @@ def predict(df_test, use_cuda, model_dir):
     labels.sort()
     text_a = df_test['text_a']
     text_b = df_test['text_b']
-    feature = df_test['feature']
+    feature = df_test['feature']  # Giả định bạn có feature trong df_test
     df_result = pd.concat([text_a, text_b, feature], axis=1)
     value_in = df_result.values.tolist()
-    _, model_outputs_test = model.predict(value_in)
+
+    # Truyền externalFeature vào phương thức predict
+    _, model_outputs_test = model.predict(value_in, externalFeature=feature.tolist())  # Giả định bạn có thể truyền externalFeature
+
     y_predict = np.argmax(model_outputs_test, axis=1)
     print(scorePredict(y_predict, labels_test, labels))
+
