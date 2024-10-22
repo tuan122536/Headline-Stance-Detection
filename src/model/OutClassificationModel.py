@@ -255,15 +255,16 @@ class OutClassificationModel:
             logger.info(" Training of {} model complete. Saved to {}.".format(self.args["model_type"], output_dir))
 
         def train(
-                self,
-                train_dataset,
-                output_dir,
-                multi_label=False,
-                show_running_loss=True,
-                eval_df=None,
-                verbose=True,
-                **kwargs,
+            self,
+            train_dataset,
+            output_dir,
+            multi_label=False,
+            show_running_loss=True,
+            eval_df=None,
+            verbose=True,
+            **kwargs,
         ):
+            pass
         """
         Trains the model on train_dataset.
 
