@@ -3,18 +3,18 @@ import torch
 import torch.nn as nn
 from torch.nn import CrossEntropyLoss, MSELoss
 
-from model.OutBertClassificationHead import OutBertClassificationHead  # Cập nhật tên lớp nếu cần
+from model.OutRobertaClassificationHead import OutRobertaClassificationHead  # Giữ nguyên tên lớp cũ
 
-class OutBertForSequenceClassification(BertPreTrainedModel):
+class OutRobertaForSequenceClassification(BertPreTrainedModel):  # Giữ nguyên tên lớp cũ
     config_class = BertConfig
     base_model_prefix = "bert"
 
     def __init__(self, config, weight=None):
-        super(OutBertForSequenceClassification, self).__init__(config)
+        super(OutRobertaForSequenceClassification, self).__init__(config)
         
         self.num_labels = config.num_labels  # Số nhãn của phân loại
         self.bert = BertModel(config)  # Khởi tạo mô hình BERT
-        self.classifier = OutBertClassificationHead(config)  # Khởi tạo lớp phân loại
+        self.classifier = OutRobertaClassificationHead(config)  # Giữ nguyên lớp phân loại cũ
         self.weight = weight  # Trọng số cho hàm mất mát (nếu có)
 
     def forward(self, input_ids=None, attention_mask=None, token_type_ids=None,
