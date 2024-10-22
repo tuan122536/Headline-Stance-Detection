@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.metrics import accuracy_score
 from model.OutClassificationModel import OutClassificationModel
 
-def train_predict_model(df_train, df_test, is_predict, use_cuda, value_head, batch_size, device):
+def train_predict_model(df_train, df_test, is_predict, use_cuda, value_head, batch_size):
     labels_test = pd.Series(df_test['labels']).to_numpy()
     labels = list(df_train['labels'].unique())
     labels.sort()
