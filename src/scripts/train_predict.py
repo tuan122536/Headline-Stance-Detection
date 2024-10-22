@@ -39,7 +39,7 @@ def main(parser):
     if model_dir == "":
         # Bắt đầu huấn luyện mô hình
         print("Bắt đầu huấn luyện mô hình...")
-        train_predict_model(df_train, df_test, True, use_cuda, len(feature), batch_size)  # Truyền batch_size vào hàm
+        train_predict_model(df_train, df_test, use_cuda, len(feature), batch_size)  # Truyền batch_size vào hàm
     else:
         # Dự đoán với mô hình đã lưu
         predict(df_test, use_cuda, model_dir, len(feature))
