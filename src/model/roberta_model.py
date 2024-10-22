@@ -10,7 +10,7 @@ def train_predict_model(df_train, df_test, is_predict, use_cuda, value_head, bat
     labels = list(df_train['labels'].unique())
     labels.sort()
 # Thử mô hình Bert
-model = OutClassificationModel('bert', 'bert-base-uncased', num_labels=len(labels),
+    model = OutClassificationModel('bert', 'bert-base-uncased', num_labels=len(labels),
                                use_cuda=use_cuda, args={
                                'learning_rate': 5e-6,
                                'num_train_epochs': 10,
