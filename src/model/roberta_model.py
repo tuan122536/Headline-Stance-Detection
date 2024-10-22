@@ -13,7 +13,7 @@ def train_predict_model(df_train, df_test, is_predict, use_cuda, value_head, bat
 model = OutClassificationModel('bert', 'bert-base-uncased', num_labels=len(labels),
                                use_cuda=use_cuda, args={
                                'learning_rate': 5e-6,
-                               'num_train_epochs': 5,
+                               'num_train_epochs': 10,
                                'reprocess_input_data': True,
                                'overwrite_output_dir': True,
                                'process_count': 10,
