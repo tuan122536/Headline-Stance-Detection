@@ -850,12 +850,9 @@ class OutClassificationModel:
         device = self.device
         model = self.model
         args = self.args
-
+    
         self._move_model_to_device()
-
-        # for i, text in enumerate(to_predict):
-        #     value1, value2, value3 =text[0], text[1], text[2]
-
+    
         if multi_label:
             eval_examples = [
                 InputExample(i, text, None, [0 for i in range(self.num_labels)]) for i, text in enumerate(to_predict)
@@ -865,20 +862,68 @@ class OutClassificationModel:
                 eval_examples = [InputExample(i, text[0], text[1], 0, text[2]) for i, text in enumerate(to_predict)]
             else:
                 eval_examples = [InputExample(i, text, None, 0) for i, text in enumerate(to_predict)]
+        
         if args["sliding_window"]:
             eval_dataset, window_counts = self.load_and_cache_examples(eval_examples, evaluate=True, no_cache=True)
         else:
             eval_dataset = self.load_and_cache_examples(
                 eval_examples, evaluate=True, multi_label=multi_label, no_cache=True
             )
-
+    
         eval_sampler = SequentialSampler(eval_dataset)
         eval_dataloader = DataLoader(eval_dataset, sampler=eval_sampler, batch_size=args["eval_batch_size"])
-
+    
         eval_loss = 0.0
         nb_eval_steps = 0
         preds = None
         out_label_ids = None
+    
+        for batch in tqdm(eval_dataloader, disable=args["silent"]):
+            model.eval()
+            batch = tuple(t.to(device) for t in batch)
+    
+            with torch.no_grad():
+                inputs = self._get_inputs_dict(batch)
+    
+                # Xóa externalFeature khi gọi model
+                outputs = model(**inputs)  # Đảm bảo không có externalFeature ở đây
+    
+                tmp_eval_loss, logits = outputs[:2]
+    
+                if multi_label:
+                    logits = logits.sigmoid()
+    
+                eval_loss += tmp_eval_loss.mean().item()
+    
+            nb_eval_steps += 1
+    
+            if preds is None:
+                preds = logits.detach().cpu().numpy()
+                out_label_ids = inputs["labels"].detach().cpu().numpy()
+            else:
+                preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
+                out_label_ids = np.append(out_label_ids, inputs["labels"].detach().cpu().numpy(), axis=0)
+    
+        eval_loss = eval_loss / nb_eval_steps
+    
+        if not multi_label and args["regression"] is True:
+            preds = np.squeeze(preds)
+            model_outputs = preds
+        else:
+            model_outputs = preds
+            if multi_label:
+                if isinstance(args["threshold"], list):
+                    threshold_values = args["threshold"]
+                    preds = [
+                        [self._threshold(pred, threshold_values[i]) for i, pred in enumerate(example)]
+                        for example in preds
+                    ]
+                else:
+                    preds = [[self._threshold(pred, args["threshold"]) for pred in example] for example in preds]
+            else:
+                preds = np.argmax(preds, axis=1)
+    
+        return preds, model_outputs
 
         if self.config.output_hidden_states:
             for batch in tqdm(eval_dataloader, disable=args["silent"]):
