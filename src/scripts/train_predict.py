@@ -19,9 +19,6 @@ def main(parser):
     model_dir = args.model_dir
     batch_size = args.batch_size  # Lấy giá trị batch_size từ đối số
     feature = []
-    
-    # Kiểm tra xem GPU có khả dụng không
-    device = torch.device("cuda" if use_cuda and torch.cuda.is_available() else "cpu")
 
     if not not_use_feature:
         if type_class == 'stance':
