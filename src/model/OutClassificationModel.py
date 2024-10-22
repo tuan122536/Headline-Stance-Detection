@@ -884,20 +884,21 @@ class OutClassificationModel:
             for batch in tqdm(eval_dataloader, disable=args["silent"]):
                 model.eval()
                 batch = tuple(t.to(device) for t in batch)
-
+        
                 with torch.no_grad():
                     inputs = self._get_inputs_dict(batch)
-                    outputs = model(**inputs, externalFeature=batch[4])
+                    # Xóa externalFeature khi gọi model
+                    outputs = model(**inputs)
                     tmp_eval_loss, logits = outputs[:2]
                     embedding_outputs, layer_hidden_states = outputs[2][0], outputs[2][1:]
-
+        
                     if multi_label:
                         logits = logits.sigmoid()
-
+        
                     eval_loss += tmp_eval_loss.mean().item()
-
+        
                 nb_eval_steps += 1
-
+        
                 if preds is None:
                     preds = logits.detach().cpu().numpy()
                     out_label_ids = inputs["labels"].detach().cpu().numpy()
@@ -914,27 +915,26 @@ class OutClassificationModel:
             for batch in tqdm(eval_dataloader, disable=args["silent"]):
                 model.eval()
                 batch = tuple(t.to(device) for t in batch)
-
+        
                 with torch.no_grad():
                     inputs = self._get_inputs_dict(batch)
-                    outputs = model(**inputs, externalFeature=batch[4])
+                    # Xóa externalFeature khi gọi model
+                    outputs = model(**inputs)
                     tmp_eval_loss, logits = outputs[:2]
-
+        
                     if multi_label:
                         logits = logits.sigmoid()
-
+        
                     eval_loss += tmp_eval_loss.mean().item()
-
+        
                 nb_eval_steps += 1
-
+        
                 if preds is None:
                     preds = logits.detach().cpu().numpy()
                     out_label_ids = inputs["labels"].detach().cpu().numpy()
                 else:
                     preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
                     out_label_ids = np.append(out_label_ids, inputs["labels"].detach().cpu().numpy(), axis=0)
-
-        eval_loss = eval_loss / nb_eval_steps
 
         if args["sliding_window"]:
             count = 0
