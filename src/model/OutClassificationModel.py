@@ -21,6 +21,7 @@ from tqdm.auto import tqdm, trange
 from model.util import InputExample
 import pandas as pd
 import torch
+import torch.nn as nn
 from model.outClasification_utils import convert_examples_to_features, InputExample
 from simpletransformers.classification.transformer_models.albert_model import AlbertForSequenceClassification
 from simpletransformers.classification.transformer_models.bert_model import BertForSequenceClassification
