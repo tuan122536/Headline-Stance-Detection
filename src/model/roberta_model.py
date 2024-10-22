@@ -1,15 +1,16 @@
-﻿import os
+import os
 from common.score import scorePredict
 import pandas as pd
 import numpy as np
 from sklearn.metrics import accuracy_score
 from model.OutClassificationModel import OutClassificationModel
 
-def train_predict_model(df_train, df_test, is_predict, use_cuda, value_head, batch_size=4):
+def train_predict_model(df_train, df_test, is_predict, use_cuda, batch_size):
     labels_test = pd.Series(df_test['labels']).to_numpy()
     labels = list(df_train['labels'].unique())
     labels.sort()
-# Thử mô hình Bert
+
+    # Thử mô hình Bert
     model = OutClassificationModel('bert', 'bert-base-uncased', num_labels=len(labels),
                                use_cuda=use_cuda, args={
                                'learning_rate': 5e-6,
@@ -22,7 +23,6 @@ def train_predict_model(df_train, df_test, is_predict, use_cuda, value_head, bat
                                'max_seq_length': 512,
                                'fp16': True,
                                'fp16_opt_level': "O1",
-                               'value_head': value_head,
                                'early_stopping': True,
                                'early_stopping_patience': 3,
                                'early_stopping_threshold': 0.01})
@@ -46,8 +46,8 @@ def train_predict_model(df_train, df_test, is_predict, use_cuda, value_head, bat
     return results
 
 
-def predict(df_test, use_cuda, model_dir, value_head):
-    model = OutClassificationModel(model_type='roberta', model_name=os.getcwd() + model_dir, use_cuda=use_cuda, args={'value_head': value_head})
+def predict(df_test, use_cuda, model_dir):
+    model = OutClassificationModel(model_type='bert', model_name=os.getcwd() + model_dir, use_cuda=use_cuda)
     labels_test = pd.Series(df_test['labels']).to_numpy()
     labels = list(df_test['labels'].unique())
     labels.sort()
