@@ -75,8 +75,8 @@ logger = logging.getLogger(__name__)
 
 
 class OutClassificationModel:
-   def __init__(self, model_type, model_name, num_labels=None, weight=None, args=None, use_cuda=True, cuda_device=-1, **kwargs):
-        self.model = model_class.from_pretrained(model_name, config=self.config, **kwargs)
+       def __init__(self, model_type, model_name, num_labels=None, weight=None, args=None, use_cuda=True, cuda_device=-1, **kwargs):
+            self.model = model_class.from_pretrained(model_name, config=self.config, **kwargs)
 
         MODEL_CLASSES = {
             "bert": (BertConfig, BertForSequenceClassification, BertTokenizer),
@@ -170,19 +170,18 @@ class OutClassificationModel:
             warnings.warn("wandb_project specified but wandb is not available. Wandb disabled.")
             self.args["wandb_project"] = None
 
-        def train_model(
-            self,
-            train_df,
-            multi_label=False,
-            output_dir=None,
-            show_running_loss=True,
-            args=None,
-            eval_df=None,
-            verbose=True,
-            **kwargs,
-        ):
-            pass    
-
+    def train_model(
+        self,
+        train_df,
+        multi_label=False,
+        output_dir=None,
+        show_running_loss=True,
+        args=None,
+        eval_df=None,
+        verbose=True,
+        **kwargs,
+    ):
+          
         if args:
             self.args.update(args)
 
@@ -254,17 +253,17 @@ class OutClassificationModel:
         if verbose:
             logger.info(" Training of {} model complete. Saved to {}.".format(self.args["model_type"], output_dir))
 
-        def train(
-            self,
-            train_dataset,
-            output_dir,
-            multi_label=False,
-            show_running_loss=True,
-            eval_df=None,
-            verbose=True,
-            **kwargs,
-        ):
-            pass
+    def train(
+        self,
+        train_dataset,
+        output_dir,
+        multi_label=False,
+        show_running_loss=True,
+        eval_df=None,
+        verbose=True,
+        **kwargs,
+    ):
+        
         """
         Trains the model on train_dataset.
 
@@ -578,7 +577,7 @@ class OutClassificationModel:
 
         return global_step, tr_loss / global_step
 
-        def eval_model(self, eval_df, multi_label=False, output_dir=None, verbose=True, silent=False, **kwargs):
+    def eval_model(self, eval_df, multi_label=False, output_dir=None, verbose=True, silent=False, **kwargs):
         
 
         if not output_dir:
@@ -597,7 +596,7 @@ class OutClassificationModel:
         return result, model_outputs, wrong_preds
 
 
-        def evaluate(self, eval_df, output_dir, multi_label=False, prefix="", verbose=True, silent=False, **kwargs):
+    def evaluate(self, eval_df, output_dir, multi_label=False, prefix="", verbose=True, silent=False, **kwargs):
        
 
         device = self.device
@@ -712,9 +711,9 @@ class OutClassificationModel:
 
         return results, model_outputs, wrong
 
-        def load_and_cache_examples(
-            self, examples, evaluate=False, no_cache=False, multi_label=False, verbose=True, silent=False
-        ):
+    def load_and_cache_examples(
+        self, examples, evaluate=False, no_cache=False, multi_label=False, verbose=True, silent=False
+    ):
         
         process_count = self.args["process_count"]
 
@@ -803,7 +802,7 @@ class OutClassificationModel:
         else:
             return dataset
 
-        def compute_metrics(self, preds, labels, eval_examples, multi_label=False, **kwargs):
+    def compute_metrics(self, preds, labels, eval_examples, multi_label=False, **kwargs):
     
 
         assert len(preds) == len(labels)
@@ -833,7 +832,7 @@ class OutClassificationModel:
         else:
             return {**{"mcc": mcc}, **extra_metrics}, wrong
 
-        def predict(self, to_predict, multi_label=False):
+    def predict(self, to_predict, multi_label=False):
         
 
         device = self.device
