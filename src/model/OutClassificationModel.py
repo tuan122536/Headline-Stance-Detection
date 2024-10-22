@@ -578,7 +578,7 @@ class OutClassificationModel:
 
         return global_step, tr_loss / global_step
 
-    def eval_model(self, eval_df, multi_label=False, output_dir=None, verbose=True, silent=False, **kwargs):
+        def eval_model(self, eval_df, multi_label=False, output_dir=None, verbose=True, silent=False, **kwargs):
         
 
         if not output_dir:
@@ -597,7 +597,7 @@ class OutClassificationModel:
         return result, model_outputs, wrong_preds
 
 
-    def evaluate(self, eval_df, output_dir, multi_label=False, prefix="", verbose=True, silent=False, **kwargs):
+        def evaluate(self, eval_df, output_dir, multi_label=False, prefix="", verbose=True, silent=False, **kwargs):
        
 
         device = self.device
@@ -712,9 +712,9 @@ class OutClassificationModel:
 
         return results, model_outputs, wrong
 
-    def load_and_cache_examples(
-        self, examples, evaluate=False, no_cache=False, multi_label=False, verbose=True, silent=False
-    ):
+        def load_and_cache_examples(
+            self, examples, evaluate=False, no_cache=False, multi_label=False, verbose=True, silent=False
+        ):
         
         process_count = self.args["process_count"]
 
@@ -803,7 +803,7 @@ class OutClassificationModel:
         else:
             return dataset
 
-    def compute_metrics(self, preds, labels, eval_examples, multi_label=False, **kwargs):
+        def compute_metrics(self, preds, labels, eval_examples, multi_label=False, **kwargs):
     
 
         assert len(preds) == len(labels)
@@ -833,7 +833,7 @@ class OutClassificationModel:
         else:
             return {**{"mcc": mcc}, **extra_metrics}, wrong
 
-    def predict(self, to_predict, multi_label=False):
+        def predict(self, to_predict, multi_label=False):
         
 
         device = self.device
