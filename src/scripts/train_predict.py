@@ -71,7 +71,7 @@ def predict(df_test, use_cuda, model_dir):
 
     y_predict = np.argmax(model_outputs_test, axis=1)
     print(scorePredict(y_predict, labels_test, labels))
-  
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     
