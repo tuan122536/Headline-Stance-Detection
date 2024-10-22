@@ -1,38 +1,35 @@
-from transformers import RobertaModel, RobertaConfig, BertPreTrainedModel
+from transformers import BertModel, BertConfig, BertPreTrainedModel
 import torch
 import torch.nn as nn
 from torch.nn import CrossEntropyLoss, MSELoss
 
-from model.OutRobertaClassificationHead import OutRobertaClassificationHead
+from model.OutBertClassificationHead import OutBertClassificationHead  # Cập nhật tên lớp nếu cần
 
-class OutRobertaForSequenceClassification(BertPreTrainedModel):
-    config_class = RobertaConfig
-    base_model_prefix = "roberta"
+class OutBertForSequenceClassification(BertPreTrainedModel):
+    config_class = BertConfig
+    base_model_prefix = "bert"
 
     def __init__(self, config, weight=None):
-        # Khởi tạo lớp cha
-        super(OutRobertaForSequenceClassification, self).__init__(config)
+        super(OutBertForSequenceClassification, self).__init__(config)
         
         self.num_labels = config.num_labels  # Số nhãn của phân loại
-        self.roberta = RobertaModel(config)  # Khởi tạo mô hình RoBERTa
-        self.classifier = OutRobertaClassificationHead(config)  # Khởi tạo lớp phân loại
+        self.bert = BertModel(config)  # Khởi tạo mô hình BERT
+        self.classifier = OutBertClassificationHead(config)  # Khởi tạo lớp phân loại
         self.weight = weight  # Trọng số cho hàm mất mát (nếu có)
 
     def forward(self, input_ids=None, attention_mask=None, token_type_ids=None,
                 position_ids=None, head_mask=None, inputs_embeds=None,
                 labels=None, externalFeature=None):
-        # Chạy mô hình RoBERTa để lấy đầu ra
-        outputs = self.roberta(input_ids, attention_mask=attention_mask,
-                               token_type_ids=token_type_ids,
-                               position_ids=position_ids, head_mask=head_mask)
+        outputs = self.bert(input_ids, attention_mask=attention_mask,
+                            token_type_ids=token_type_ids,
+                            position_ids=position_ids, head_mask=head_mask)
 
-        sequence_output = outputs[0]  # Lấy đầu ra cuối cùng từ RoBERTa
+        sequence_output = outputs[0]  # Lấy đầu ra cuối cùng từ BERT
         logits = self.classifier(sequence_output, externalFeature=externalFeature)  # Lấy logits từ lớp phân loại
 
         outputs = (logits,) + outputs[2:]  # Kết hợp logits với các đầu ra khác
 
         if labels is not None:
-            # Nếu có nhãn, tính toán hàm mất mát
             if self.num_labels == 1:
                 loss_fct = MSELoss()  # Sử dụng MSE nếu chỉ có 1 nhãn
                 loss = loss_fct(logits.view(-1), labels.view(-1))
