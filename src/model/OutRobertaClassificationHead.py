@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.nn import CrossEntropyLoss, MSELoss
 from transformers import BertModel, BertConfig
 
-class OutBertClassificationHead(nn.Module):
+class OutRobertaClassificationHead(nn.Module):
     """Head for sentence-level classification tasks."""
 
     def __init__(self, config):
