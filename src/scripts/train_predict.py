@@ -1,76 +1,51 @@
 import argparse
+import torch  # Thêm thư viện PyTorch
 from common.loadData import load_all_data
-from model.roberta_model import OutRobertaForSequenceClassification, predict
-import torch
-from torch.utils.data import DataLoader, TensorDataset
-from sklearn.preprocessing import LabelEncoder
-import torch.nn as nn
+from model.roberta_model import train_predict_model, predict
 
 feature_stance = ['polarityClaim_nltk_neg', 'polarityClaim_nltk_pos', 'polarityBody_nltk_neg', 'polarityBody_nltk_pos']
 feature_related = ['cosine_similarity', 'max_score_in_position', 'overlap', 'soft_cosine_similarity', 'bert_cs']
 feature_all = ['cosine_similarity', 'max_score_in_position', 'overlap', 'soft_cosine_similarity', 'bert_cs',
                'polarityClaim_nltk_neg', 'polarityClaim_nltk_pos', 'polarityBody_nltk_neg', 'polarityBody_nltk_pos']
 
-def train_predict_model(df_train, df_test, is_predict, use_cuda, batch_size):  
-    labels_test = pd.Series(df_test['labels']).to_numpy()
-    labels = list(df_train['labels'].unique())
-    labels.sort()
+def main(parser):
+    args = parser.parse_args()
 
-    # Thử mô hình Bert
-    model_type = "bert"  
-    model = OutClassificationModel(model_type, 'bert-base-uncased', num_labels=len(labels),
-                                   use_cuda=use_cuda, args={
-                                   'learning_rate': 5e-6,
-                                   'num_train_epochs': 10,
-                                   'reprocess_input_data': True,
-                                   'overwrite_output_dir': True,
-                                   'process_count': 10,
-                                   'train_batch_size': batch_size,
-                                   'eval_batch_size': batch_size,
-                                   'max_seq_length': 512,
-                                   'fp16': True,
-                                   'fp16_opt_level': "O1",
-                                   'early_stopping': True,
-                                   'early_stopping_patience': 3,
-                                   'early_stopping_threshold': 0.01})
+    type_class = args.type_class
+    use_cuda = args.use_cuda
+    not_use_feature = args.not_use_feature
+    training_set = args.training_set
+    test_set = args.test_set
+    model_dir = args.model_dir
+    batch_size = args.batch_size  # Lấy giá trị batch_size từ đối số
+    feature = []
+    
+    # Kiểm tra xem GPU có khả dụng không
+    device = torch.device("cuda" if use_cuda and torch.cuda.is_available() else "cpu")
 
-    # Huấn luyện mô hình
-    model.train_model(df_train)
+    if not not_use_feature:
+        if type_class == 'stance':
+            feature = feature_stance
+        elif type_class == 'related':
+            feature = feature_related
+        elif type_class == 'all':
+            feature = feature_all
 
-    results = ''
-    if is_predict:
-        text_a = df_test['text_a']
-        text_b = df_test['text_b']
-        df_result = pd.concat([text_a, text_b], axis=1)
-        value_in = df_result.values.tolist()
+    # Chỉnh sửa đường dẫn đến tập dữ liệu
+    training_set = training_set.replace("/data/", "/content/apex/Headline-Stance-Detection/")
+    test_set = test_set.replace("/data/", "/content/apex/Headline-Stance-Detection/")
 
-        # Loại bỏ externalFeature
-        _, model_outputs_test = model.predict(value_in)  # Bỏ externalFeature
+    # Tải dữ liệu huấn luyện và kiểm tra
+    df_train = load_all_data(training_set, type_class, feature)
+    df_test = load_all_data(test_set, type_class, feature)
 
+    if model_dir == "":
+        # Bắt đầu huấn luyện mô hình
+        print("Bắt đầu huấn luyện mô hình...")
+        train_predict_model(df_train, df_test, True, use_cuda, len(feature), batch_size, device)  # Thêm device
     else:
-        result, model_outputs_test, wrong_predictions = model.eval_model(df_test, acc=accuracy_score)
-        results = result['acc']
-
-    y_predict = np.argmax(model_outputs_test, axis=1)
-    print(scorePredict(y_predict, labels_test, labels))
-    return results
-
-def predict(df_test, use_cuda, model_dir):
-    model = OutClassificationModel(model_type='bert', model_name=os.getcwd() + model_dir, use_cuda=use_cuda)
-    labels_test = pd.Series(df_test['labels']).to_numpy()
-    labels = list(df_test['labels'].unique())
-    labels.sort()
-
-    text_a = df_test['text_a']
-    text_b = df_test['text_b']
-    df_result = pd.concat([text_a, text_b], axis=1)
-    value_in = df_result.values.tolist()
-
-    # Loại bỏ externalFeature
-    _, model_outputs_test = model.predict(value_in)  # Bỏ externalFeature
-
-    y_predict = np.argmax(model_outputs_test, axis=1)
-    print(scorePredict(y_predict, labels_test, labels))
+        # Dự đoán với mô hình đã lưu
+        predict(df_test, use_cuda, model_dir, len(feature), device)  # Thêm device
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
