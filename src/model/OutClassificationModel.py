@@ -181,7 +181,7 @@ class OutClassificationModel:
             verbose=True,
             **kwargs,
         ):
-
+            pass    
 
         if args:
             self.args.update(args)
