@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.nn import CrossEntropyLoss, MSELoss
 from transformers import BertModel, BertConfig
 
-class OutRobertaClassificationHead(nn.Module):
+class OutBertClassificationHead(nn.Module):
     """Head for sentence-level classification tasks."""
 
     def __init__(self, config):
@@ -12,7 +12,7 @@ class OutRobertaClassificationHead(nn.Module):
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.out_proj = nn.Linear(config.hidden_size, config.num_labels)
 
-    def forward(self, features, **kwargs):
+    def forward(self, features, externalFeature=None):
         x = features[:, 0, :]  # take <s> token (equiv. to [CLS])
         x = self.dropout(x)
         x = self.dense(x)
