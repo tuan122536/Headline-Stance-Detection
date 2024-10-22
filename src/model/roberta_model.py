@@ -11,21 +11,23 @@ def train_predict_model(df_train, df_test, is_predict, use_cuda, batch_size):  #
     labels.sort()
 
     # Thử mô hình Bert
-    model = OutClassificationModel('bert', 'bert-base-uncased', num_labels=len(labels),
-                                   use_cuda=use_cuda, args={
-                                   'learning_rate': 5e-6,
-                                   'num_train_epochs': 10,
-                                   'reprocess_input_data': True,
-                                   'overwrite_output_dir': True,
-                                   'process_count': 10,
-                                   'train_batch_size': batch_size,
-                                   'eval_batch_size': batch_size,
-                                   'max_seq_length': 512,
-                                   'fp16': True,
-                                   'fp16_opt_level': "O1",
-                                   'early_stopping': True,
-                                   'early_stopping_patience': 3,
-                                   'early_stopping_threshold': 0.01})
+model_type = "bert"  # Hoặc kiểu mô hình mà bạn muốn sử dụng
+model = OutClassificationModel(model_type, 'bert-base-uncased', num_labels=len(labels),
+                               use_cuda=use_cuda, args={
+                               'learning_rate': 5e-6,
+                               'num_train_epochs': 10,
+                               'reprocess_input_data': True,
+                               'overwrite_output_dir': True,
+                               'process_count': 10,
+                               'train_batch_size': batch_size,
+                               'eval_batch_size': batch_size,
+                               'max_seq_length': 512,
+                               'fp16': True,
+                               'fp16_opt_level': "O1",
+                               'early_stopping': True,
+                               'early_stopping_patience': 3,
+                               'early_stopping_threshold': 0.01})
+
 
     model.train_model(df_train)
 
