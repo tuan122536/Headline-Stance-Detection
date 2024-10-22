@@ -55,6 +55,7 @@ def predict(df_test, use_cuda, model_dir):
     labels_test = pd.Series(df_test['labels']).to_numpy()
     labels = list(df_test['labels'].unique())
     labels.sort()
+
     text_a = df_test['text_a']
     text_b = df_test['text_b']
     feature = df_test['feature']  # Giả định bạn có feature trong df_test
@@ -62,8 +63,8 @@ def predict(df_test, use_cuda, model_dir):
     value_in = df_result.values.tolist()
 
     # Truyền externalFeature vào phương thức predict
-    _, model_outputs_test = model.predict(value_in, externalFeature=feature.tolist())  # Giả định bạn có thể truyền externalFeature
+    # Chắc chắn rằng model.predict có khả năng xử lý externalFeature
+    _, model_outputs_test = model.predict(value_in, externalFeature=feature.tolist())  # Truyền externalFeature vào đây
 
     y_predict = np.argmax(model_outputs_test, axis=1)
     print(scorePredict(y_predict, labels_test, labels))
-
