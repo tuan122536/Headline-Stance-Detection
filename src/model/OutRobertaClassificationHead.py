@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.nn import CrossEntropyLoss, MSELoss
-from transformers import RobertaForSequenceClassification, RobertaModel, RobertaConfig, BertPreTrainedModel
+from transformers import BertModel, BertConfig
 
 class OutRobertaClassificationHead(nn.Module):
     """Head for sentence-level classification tasks."""
@@ -20,4 +20,3 @@ class OutRobertaClassificationHead(nn.Module):
         x = self.dropout(x)
         x = self.out_proj(x)
         return x
-
