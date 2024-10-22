@@ -254,7 +254,7 @@ class OutClassificationModel:
         if verbose:
             logger.info(" Training of {} model complete. Saved to {}.".format(self.args["model_type"], output_dir))
 
-            def train(
+        def train(
                 self,
                 train_dataset,
                 output_dir,
@@ -263,7 +263,7 @@ class OutClassificationModel:
                 eval_df=None,
                 verbose=True,
                 **kwargs,
-            ):
+        ):
         """
         Trains the model on train_dataset.
 
