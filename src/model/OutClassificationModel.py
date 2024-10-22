@@ -77,7 +77,10 @@ logger = logging.getLogger(__name__)
 
 class OutClassificationModel:
     def __init__(self, model_type, model_name, num_labels=None, weight=None, args=None, use_cuda=True, cuda_device=-1, **kwargs):
+        print(f"Model type: {model_type}")  # In ra loại mô hình
         model_class_info = MODEL_CLASSES.get(model_type)
+        print(f"Model class info: {model_class_info}")  # In ra thông tin lớp mô hình
+        
         if model_class_info is None:
             raise ValueError(f"Model type '{model_type}' is not supported.")
         
