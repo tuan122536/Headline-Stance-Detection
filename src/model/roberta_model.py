@@ -13,7 +13,7 @@ def train_predict_model(df_train, df_test, is_predict, use_cuda, value_head, bat
     # mô hình với các tham số tối ưu hóa
     model = OutClassificationModel('roberta', 'roberta-large', num_labels=len(labels),
                                 use_cuda=use_cuda, args={
-                                'learning_rate': 5e-6,
+                                'learning_rate': 1.5e-5,
                                 'num_train_epochs': 5,  # Tăng số epoch nếu cần
                                 'reprocess_input_data': True,
                                 'overwrite_output_dir': True,
