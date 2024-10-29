@@ -27,14 +27,16 @@ def load_all_data(file_in, type_class, features):
 
     df_in[label] = labelencoder.fit_transform(df_in[label])
 
+    # Kiểm tra xem cột 'sentence1' và 'sentences2' có tồn tại không
+    if 'sentence1' not in df_in.columns:
+        raise KeyError("'sentence1' column is missing in the DataFrame")
+    
+    if 'sentences2' not in df_in.columns:
+        raise KeyError("'sentences2' column is missing in the DataFrame")
+
     l = df_in[label].to_list()
     h = df_in['sentence1'].to_list()
-
-    # Sửa tên cột từ 'sentence2' thành 'sentences2'
-    if 'sentences2' in df_in.columns:
-        p = df_in['sentences2'].to_list()
-    else:
-        raise KeyError("'sentences2' column is missing in the DataFrame")
+    p = df_in['sentences2'].to_list()
 
     f = []
     if features:
@@ -47,7 +49,3 @@ def load_all_data(file_in, type_class, features):
 
     list_of_tuples = list(zip(h, p, l, f))
     return pd.DataFrame(list_of_tuples, columns=['text_a', 'text_b', 'labels', 'feature'])
-
-
-
-
