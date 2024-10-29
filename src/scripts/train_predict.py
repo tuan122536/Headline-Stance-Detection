@@ -40,10 +40,29 @@ def main(parser):
     df_train = load_all_data(training_set, type_class, feature)
     df_test = load_all_data(test_set, type_class, feature)
 
+    # Chuyển đổi DataFrame thành mảng NumPy cho huấn luyện K-means
+    X_train_kmeans_stratified = df_train[feature].to_numpy()
+    X_test_kmeans_stratified = df_test[feature].to_numpy()
+
+    # Chuyển đổi labels thành numpy array từ df_train và df_test
+    y_train = df_train['labels'].to_numpy()
+    y_test = df_test['labels'].to_numpy()
+
     if model_dir == "":
         # Bắt đầu huấn luyện mô hình
         print("Bắt đầu huấn luyện mô hình...")
-        train_predict_model(df_train, df_test, True, device, len(feature), batch_size)  # Thay đổi device ở đây
+        train_predict_model(X_train_kmeans_stratified, X_test_kmeans_stratified, True, device, len(feature), batch_size)
     else:
         # Dự đoán với mô hình đã lưu
-        predict(df_test, device, model_dir, len(feature))  # Thay đổi device ở đây
+        predict(df_test, device, model_dir, len(feature))
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--type_class', type=str, required=True)
+    parser.add_argument('--use_cuda', action='store_true')
+    parser.add_argument('--not_use_feature', action='store_true')
+    parser.add_argument('--training_set', type=str, required=True)
+    parser.add_argument('--test_set', type=str, required=True)
+    parser.add_argument('--model_dir', type=str, default="")
+    parser.add_argument('--batch_size', type=int, default=32)
+    main(parser)
