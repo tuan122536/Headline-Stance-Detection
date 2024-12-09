@@ -14,20 +14,16 @@ def train_predict_model(df_train, df_test, is_predict, use_cuda, value_head, bat
     model = OutClassificationModel('roberta', 'roberta-large', num_labels=len(labels),
                                 use_cuda=use_cuda, args={
                                 'learning_rate': 1e-5,
-                                'num_train_epochs': 5,  # Tăng số epoch nếu cần
+                                'num_train_epochs': 3,
                                 'reprocess_input_data': True,
                                 'overwrite_output_dir': True,
                                 'process_count': 10,
-                                'train_batch_size': batch_size,
-                                'eval_batch_size': batch_size,
+                                'train_batch_size': 4,
+                                'eval_batch_size': 4,
                                 'max_seq_length': 512,
                                 'fp16': True,
                                 'fp16_opt_level': "O1",
-                                'value_head': value_head,
-                                'early_stopping': True,  # Bật Early Stopping
-                                'early_stopping_patience': 3,  # Thời gian dừng
-                                'early_stopping_threshold': 0.01})  # Ngưỡng cải thiện
-
+                                'value_head': value_head})
     # Huấn luyện mô hình
     model.train_model(df_train)
 
