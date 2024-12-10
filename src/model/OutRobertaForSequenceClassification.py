@@ -2,8 +2,9 @@ from simpletransformers.classification.transformer_models.roberta_model import R
 import torch
 import torch.nn as nn
 from torch.nn import CrossEntropyLoss, MSELoss
-from transformers.models.roberta.modeling_roberta import (
+from transformers.modeling_roberta import (
     ROBERTA_PRETRAINED_MODEL_ARCHIVE_LIST,
+    BertPreTrainedModel,
     RobertaClassificationHead,
     RobertaConfig,
     RobertaModel,
