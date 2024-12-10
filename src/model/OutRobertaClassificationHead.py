@@ -1,7 +1,13 @@
 import torch
 import torch.nn as nn
 from torch.nn import CrossEntropyLoss, MSELoss
-from transformers import RobertaForSequenceClassification, RobertaModel, RobertaConfig, BertPreTrainedModel
+from transformers.modeling_roberta import (
+    ROBERTA_PRETRAINED_MODEL_ARCHIVE_LIST,
+    BertPreTrainedModel,
+    RobertaClassificationHead,
+    RobertaConfig,
+    RobertaModel,
+)
 
 
 class OutRobertaClassificationHead(nn.Module):
