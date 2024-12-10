@@ -23,7 +23,9 @@ def train_predict_model(df_train, df_test, is_predict, use_cuda, value_head):
                                 'max_seq_length': 512,
                                 'fp16': True,
                                 'fp16_opt_level': "O1",
-                                'value_head': value_head})
+                                'value_head': value_head,
+                                'logging_steps': -1,
+                                'silent': True})
 
     model.train_model(df_train)
 
