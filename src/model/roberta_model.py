@@ -6,12 +6,13 @@ from sklearn.metrics import accuracy_score
 from model.OutClassificationModel import OutClassificationModel
 
 def train_predict_model(df_train, df_test, is_predict, use_cuda, value_head):
+    use_cuda = use_cuda and torch.cuda.is_available()
     labels_test = pd.Series(df_test['labels']).to_numpy()
     labels = list(df_train['labels'].unique())
     labels.sort()
 
     model = OutClassificationModel('roberta', 'roberta-large', num_labels=len(labels),
-                                use_cuda=use_cuda, args={
+                                use_cuda=True, args={
                                 'learning_rate': 1e-5,
                                 'num_train_epochs': 3,
                                 'reprocess_input_data': True,
@@ -43,6 +44,7 @@ def train_predict_model(df_train, df_test, is_predict, use_cuda, value_head):
 
 
 def predict(df_test, use_cuda, model_dir, value_head):
+    use_cuda = torch.cuda.is_available()
     model = OutClassificationModel(model_type='roberta', model_name=os.getcwd() + model_dir, use_cuda=use_cuda, args={'value_head': value_head})
     labels_test = pd.Series(df_test['labels']).to_numpy()
     labels = list(df_test['labels'].unique())
